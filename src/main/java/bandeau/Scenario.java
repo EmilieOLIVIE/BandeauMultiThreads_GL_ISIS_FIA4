@@ -39,10 +39,22 @@ public class Scenario {
      * @param b le bandeau ou s'afficher.
      */
     public void playOn(Bandeau b) {
-        for (ScenarioElement element : myElements) {
-            for (int repeats = 0; repeats < element.repeats; repeats++) {
-                element.effect.playOn(b);
-            }
-        }
+        //On crée le nouveau thread afin de pouvoir lancer plusieurs scénarii sur plusieurs bandeaux parallèlement
+    	Thread t = new Thread() {
+		    public void run() {
+                //On verrouille implicitement le bandeau b passé en paramètre afin d'empêcher de jouer plusieurs scénarii en même temps sur ce bandeau
+		    	synchronized(b) {
+                    //Pour chaque effet du scénario
+		    		for (ScenarioElement element : myElements) {
+                        //On le joue autant de fois qu'il doit être répété
+		    			for (int repeats = 0; repeats < element.repeats; repeats++) {
+		    				element.effect.playOn(b);
+		    			}
+		    		}
+		    	} //Le verrou sur le bandeau b est libéré une fois tous les effets joués
+		    }
+    	};
+        //On lance le thread
+    	t.start();
     }
 }
